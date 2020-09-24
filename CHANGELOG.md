@@ -1,6 +1,8 @@
 % erl-uri changelog
 
 # Next Version
+
+# 1.1.0
 ## Features
 - Do not serialize empty queries and fragments.
 

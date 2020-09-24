@@ -14,14 +14,12 @@
 
 {application, uri,
  [{description, "URI utilities."},
-  {vsn, "1.0.0"},
+  {vsn, "1.1.0"},
   {registered, []},
   {applications,
    [kernel,
-    stdlib
-   ]},
+    stdlib]},
   {env, []},
   {modules, []},
 
-  {licenses, ["ISC"]}
- ]}.
+  {licenses, ["ISC"]}]}.
