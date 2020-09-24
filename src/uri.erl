@@ -91,13 +91,13 @@ serialize_port_part(_) ->
   [].
 
 -spec serialize_query_part(uri()) -> iodata().
-serialize_query_part(#{query := Query}) ->
+serialize_query_part(#{query := Query}) when length(Query) > 0 ->
   [$?, serialize_query(Query)];
 serialize_query_part(_) ->
   [].
 
 -spec serialize_fragment_part(uri()) -> iodata().
-serialize_fragment_part(#{fragment := Fragment}) ->
+serialize_fragment_part(#{fragment := Fragment}) when byte_size(Fragment) > 0 ->
   [$#, encode_fragment(Fragment)];
 serialize_fragment_part(_) ->
   [].
