@@ -463,7 +463,7 @@ resolve_reference(Ref, Base = #{scheme := _}) ->
       end
   end;
 resolve_reference(_Ref, Base) ->
-  throw({error, {missing_base_uri_scheme, Base}}).
+  error({missing_base_uri_scheme, Base}).
 
 -spec remove_uri_dot_segments(uri()) -> path().
 remove_uri_dot_segments(URI) ->
