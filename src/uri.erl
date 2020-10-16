@@ -20,7 +20,8 @@
 
 -export_type([uri/0,
               scheme/0, username/0, password/0, host/0, port_number/0, path/0,
-              query/0, fragment/0]).
+              query/0, fragment/0,
+              percent_decoding_options/0, percent_decoding_error_reason/0]).
 
 -type uri() :: #{scheme => scheme(),
                  username => username(),
@@ -43,6 +44,8 @@
 -type parsing_state() :: scheme | authority | path | query | fragment.
 
 -type percent_decoding_options() :: #{decode_plus => boolean()}.
+-type percent_decoding_error_reason() :: {truncated_percent_sequence, binary()}
+                                       | {invalid_hex_digit, integer()}.
 
 -spec serialize(uri()) -> binary().
 serialize(URI) ->
@@ -180,9 +183,15 @@ is_sub_delim_char(C) when C =:= $!; C =:= $$; C =:= $&; C =:= $'; C =:= $(;
 is_sub_delim_char(_) ->
   false.
 
--spec parse(binary()) -> uri().
+-spec parse(binary()) -> {ok, uri()} | {error, term()}.
 parse(Data) ->
-  parse(scheme, Data, #{}).
+  try
+    URI = parse(scheme, Data, #{}),
+    {ok, URI}
+  catch
+    throw:{error, Reason} ->
+      {error, Reason}
+  end.
 
 -spec parse(parsing_state(), binary(), uri()) -> uri().
 
@@ -211,10 +220,10 @@ parse(authority, Data, URI) ->
 parse(path, Data = <<C, _/binary>>, URI) when C =/= $?, C =/= $# ->
   case split2(Data, [<<"?">>, <<"#">>]) of
     [Path, Rest] ->
-      URI2 = URI#{path => percent_decode(Path)},
+      URI2 = URI#{path => do_percent_decode(Path)},
       parse(query, Rest, URI2);
     [Path] ->
-      URI#{path => percent_decode(Path)}
+      URI#{path => do_percent_decode(Path)}
   end;
 parse(path, Data, URI) ->
   parse(query, Data, URI);
@@ -231,12 +240,12 @@ parse(query, Data, URI) ->
   parse(fragment, Data, URI);
 
 parse(fragment, <<$#, FragmentData/binary>>, URI) ->
-  URI#{fragment => percent_decode(FragmentData)};
+  URI#{fragment => do_percent_decode(FragmentData)};
 parse(fragment, <<>>, URI) ->
   URI;
 
 parse(State, Data, URI) ->
-  error({invalid_data, Data, State, URI}).
+  throw({error, {invalid_data, Data, State, URI}}).
 
 -spec parse_uri_authority(uri(), binary()) -> uri().
 parse_uri_authority(URI, Data) ->
@@ -244,14 +253,14 @@ parse_uri_authority(URI, Data) ->
     [UserInfo, Rest] ->
       URI2 = case split2(UserInfo, <<":">>) of
                [U, <<":">>] ->
-                 Username = percent_decode(U),
+                 Username = do_percent_decode(U),
                  URI#{username => Username, password => <<>>};
                [U, <<":", P/binary>>] ->
-                 Username = percent_decode(U),
-                 Password = percent_decode(P),
+                 Username = do_percent_decode(U),
+                 Password = do_percent_decode(P),
                  URI#{username => Username, password => Password};
                [U] ->
-                 Username = percent_decode(U),
+                 Username = do_percent_decode(U),
                  URI#{username => Username}
              end,
       parse_uri_host_and_port(URI2, Rest);
@@ -269,9 +278,9 @@ parse_uri_host_and_port(URI, Data = <<$[, _/binary>>) ->
     [Host, <<$:, PortData/binary>>] ->
       URI#{host => <<Host/binary, $]>>, port => decode_port(PortData)};
     [_Host, _Rest] ->
-      error({invalid_host, Data});
+      throw({error, {invalid_host, Data}});
     _ ->
-      error({truncated_host, Data})
+      throw({error, {truncated_host, Data}})
   end;
 parse_uri_host_and_port(URI, Data) ->
   case binary:split(Data, <<":">>) of
@@ -286,12 +295,12 @@ decode_port(Data) ->
   try
     case binary_to_integer(Data) of
       Port when Port < 0; Port > 65535 ->
-        error({invalid_port, Data});
+        throw({error, {invalid_port, Data}});
       Port ->
         Port
     end
   catch error:badarg ->
-      error({invalid_port, Data})
+      throw({error, {invalid_port, Data}})
   end.
 
 -spec parse_query(binary()) -> query().
@@ -311,7 +320,7 @@ parse_query(Query) ->
 
 -spec decode_query_value(binary()) -> binary().
 decode_query_value(Data) ->
-  percent_decode(Data, #{decode_plus => true}).
+  do_percent_decode(Data, #{decode_plus => true}).
 
 -spec percent_encode(binary(), IsValidChar :: fun((byte()) -> boolean())) ->
         binary().
@@ -332,28 +341,42 @@ percent_encode(<<C, Data/binary>>, IsValidChar, Acc) ->
       percent_encode(Data, IsValidChar, <<Acc/binary, $%, C1, C2>>)
   end.
 
--spec percent_decode(binary()) -> binary().
+-spec percent_decode(binary()) -> {ok, binary()} | {error, term()}.
 percent_decode(Data) ->
   percent_decode(Data, #{}).
 
--spec percent_decode(binary(), percent_decoding_options()) -> binary().
+-spec percent_decode(binary(), percent_decoding_options()) ->
+        {ok, binary()} | {error, percent_decoding_error_reason()}.
 percent_decode(Data, Options) ->
-  percent_decode(Data, Options, <<>>).
+  try
+    {ok, do_percent_decode(Data, Options)}
+  catch
+    throw:{error, Reason} ->
+      {error, Reason}
+  end.
 
--spec percent_decode(binary(), percent_decoding_options(), Acc :: binary()) ->
+-spec do_percent_decode(binary()) -> binary().
+do_percent_decode(Data) ->
+  do_percent_decode(Data, #{}).
+
+-spec do_percent_decode(binary(), percent_decoding_options()) -> binary().
+do_percent_decode(Data, Options) ->
+  do_percent_decode(Data, Options, <<>>).
+
+-spec do_percent_decode(binary(), percent_decoding_options(), Acc :: binary()) ->
         binary().
-percent_decode(<<>>, _, Acc) ->
+do_percent_decode(<<>>, _, Acc) ->
   Acc;
-percent_decode(<<$%, C1, C2, Data/binary>>, Options, Acc) ->
+do_percent_decode(<<$%, C1, C2, Data/binary>>, Options, Acc) ->
   Hi = hex_digit_to_integer(C1),
   Lo = hex_digit_to_integer(C2),
-  percent_decode(Data, Options, <<Acc/binary, Hi:4, Lo:4>>);
-percent_decode(Data = <<$%, _/binary>>, _, _) when byte_size(Data) < 3 ->
-  error({truncated_percent_sequence, Data});
-percent_decode(<<$+, Data/binary>>, Options = #{decode_plus := true}, Acc) ->
-  percent_decode(Data, Options, <<Acc/binary, $\s>>);
-percent_decode(<<C, Data/binary>>, Options, Acc) ->
-  percent_decode(Data, Options, <<Acc/binary, C>>).
+  do_percent_decode(Data, Options, <<Acc/binary, Hi:4, Lo:4>>);
+do_percent_decode(Data = <<$%, _/binary>>, _, _) when byte_size(Data) < 3 ->
+  throw({error, {truncated_percent_sequence, Data}});
+do_percent_decode(<<$+, Data/binary>>, Options = #{decode_plus := true}, Acc) ->
+  do_percent_decode(Data, Options, <<Acc/binary, $\s>>);
+do_percent_decode(<<C, Data/binary>>, Options, Acc) ->
+  do_percent_decode(Data, Options, <<Acc/binary, C>>).
 
 -spec integer_to_hex_digit(0..15) -> char().
 integer_to_hex_digit(I) when I >= 0, I =< 9 ->
@@ -369,7 +392,7 @@ hex_digit_to_integer(C) when C >= $a, C =< $f ->
 hex_digit_to_integer(C) when C >= $A, C =< $F ->
   10 + C - $A;
 hex_digit_to_integer(C) ->
-  error({invalid_hex_digit, C}).
+  throw({error, {invalid_hex_digit, C}}).
 
 -spec split2(Subject :: binary(),
              Pattern :: binary() | [binary()] | binary:cp()) ->
@@ -421,7 +444,7 @@ resolve_reference(Ref, Base = #{scheme := _}) ->
       end
   end;
 resolve_reference(_Ref, Base) ->
-  error({missing_base_uri_scheme, Base}).
+  throw({error, {missing_base_uri_scheme, Base}}).
 
 -spec remove_uri_dot_segments(uri()) -> path().
 remove_uri_dot_segments(URI) ->
