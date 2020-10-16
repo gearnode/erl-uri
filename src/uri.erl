@@ -14,7 +14,8 @@
 
 -module(uri).
 
--export([serialize/1, parse/1,
+-export([path/1, query/1, fragment/1,
+         serialize/1, parse/1,
          percent_encode/2, percent_decode/1, percent_decode/2,
          resolve_reference/2]).
 
@@ -46,6 +47,24 @@
 -type percent_decoding_options() :: #{decode_plus => boolean()}.
 -type percent_decoding_error_reason() :: {truncated_percent_sequence, binary()}
                                        | {invalid_hex_digit, integer()}.
+
+-spec path(uri()) -> path().
+path(#{path := Path}) ->
+  Path;
+path(_) ->
+  <<"/">>.
+
+-spec query(uri()) -> query().
+query(#{query := Query}) ->
+  Query;
+query(_) ->
+  [].
+
+-spec fragment(uri()) -> fragment().
+fragment(#{fragment := Fragment}) ->
+  Fragment;
+fragment(_) ->
+  <<"">>.
 
 -spec serialize(uri()) -> binary().
 serialize(URI) ->
