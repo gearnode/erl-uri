@@ -1,6 +1,8 @@
 % erl-uri changelog
 
 # Next Version
+
+# 1.2.0
 ## Features
 - Add URI accessors: `uri:path/1`, `uri:query/1`, `uri:fragment/1`.
 ## Misc
