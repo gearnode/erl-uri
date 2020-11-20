@@ -14,7 +14,7 @@
 
 {application, uri,
  [{description, "URI utilities."},
-  {vsn, "1.2.0"},
+  {vsn, "git"},
   {registered, []},
   {applications,
    [kernel,
