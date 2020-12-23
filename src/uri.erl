@@ -17,7 +17,8 @@
 -export([path/1, query/1, fragment/1,
          serialize/1, parse/1,
          percent_encode/2, percent_decode/1, percent_decode/2,
-         resolve_reference/2]).
+         resolve_reference/2,
+         parse_query/1]).
 
 -export_type([uri/0,
               scheme/0, username/0, password/0, host/0, port_number/0, path/0,
@@ -202,6 +203,15 @@ is_sub_delim_char(C) when C =:= $!; C =:= $$; C =:= $&; C =:= $'; C =:= $(;
 is_sub_delim_char(_) ->
   false.
 
+-spec parse_query(binary()) -> {ok, query()} | {error, term()}.
+parse_query(Bin) ->
+  try
+    {ok, do_parse_query(Bin)}
+  catch
+    throw:{error, Reason} ->
+      {error, Reason}
+  end.
+
 -spec parse(binary()) -> {ok, uri()} | {error, term()}.
 parse(Data) ->
   try
@@ -250,10 +260,10 @@ parse(path, Data, URI) ->
 parse(query, <<$?, Data/binary>>, URI) ->
   case split2(Data, <<"#">>) of
     [QueryData, Rest] ->
-      URI2 = URI#{query => parse_query(QueryData)},
+      URI2 = URI#{query => do_parse_query(QueryData)},
       parse(fragment, Rest, URI2);
     [QueryData] ->
-      URI#{query => parse_query(QueryData)}
+      URI#{query => do_parse_query(QueryData)}
   end;
 parse(query, Data, URI) ->
   parse(fragment, Data, URI);
@@ -322,10 +332,10 @@ decode_port(Data) ->
       throw({error, {invalid_port, Data}})
   end.
 
--spec parse_query(binary()) -> query().
-parse_query(<<>>) ->
+-spec do_parse_query(binary()) -> query().
+do_parse_query(<<>>) ->
   [];
-parse_query(Query) ->
+do_parse_query(Query) ->
   Parts = binary:split(Query, <<"&">>, [global]),
   Split = fun (Part) ->
               case binary:split(Part, <<"=">>) of
