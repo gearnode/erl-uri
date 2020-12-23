@@ -1,6 +1,8 @@
 % erl-uri changelog
 
 # Next Version
+## Features
+- Export `parse_query` functions which allow to parse `www-form-urlencoded`.
 ## Bug fixes
 - `uri:resolve_reference/2` should signal an error instead of throwing one.
 
