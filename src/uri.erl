@@ -23,6 +23,7 @@
 -export_type([uri/0,
               scheme/0, username/0, password/0, host/0, port_number/0, path/0,
               query/0, fragment/0,
+              error_reason/0,
               percent_decoding_options/0, percent_decoding_error_reason/0]).
 
 -type uri() :: #{scheme => scheme(),
@@ -44,6 +45,12 @@
 -type fragment() :: binary().
 
 -type parsing_state() :: scheme | authority | path | query | fragment.
+
+-type error_reason() :: {invalid_data, binary(), parsing_state(), uri()}
+                      | {invalid_host, binary()}
+                      | {truncated_host, binary()}
+                      | {invalid_port, binary()}
+                      | percent_decoding_error_reason().
 
 -type percent_decoding_options() :: #{decode_plus => boolean()}.
 -type percent_decoding_error_reason() :: {truncated_percent_sequence, binary()}
@@ -203,7 +210,7 @@ is_sub_delim_char(C) when C =:= $!; C =:= $$; C =:= $&; C =:= $'; C =:= $(;
 is_sub_delim_char(_) ->
   false.
 
--spec parse_query(binary()) -> {ok, query()} | {error, term()}.
+-spec parse_query(binary()) -> {ok, query()} | {error, error_reason()}.
 parse_query(Bin) ->
   try
     {ok, do_parse_query(Bin)}
@@ -212,7 +219,7 @@ parse_query(Bin) ->
       {error, Reason}
   end.
 
--spec parse(binary()) -> {ok, uri()} | {error, term()}.
+-spec parse(binary()) -> {ok, uri()} | {error, error_reason()}.
 parse(Data) ->
   try
     URI = parse(scheme, Data, #{}),
@@ -370,7 +377,8 @@ percent_encode(<<C, Data/binary>>, IsValidChar, Acc) ->
       percent_encode(Data, IsValidChar, <<Acc/binary, $%, C1, C2>>)
   end.
 
--spec percent_decode(binary()) -> {ok, binary()} | {error, term()}.
+-spec percent_decode(binary()) ->
+        {ok, binary()} | {error, percent_decoding_error_reason()}.
 percent_decode(Data) ->
   percent_decode(Data, #{}).
 
