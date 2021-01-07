@@ -497,5 +497,9 @@ format_error({truncated_host, Data}) ->
   io_lib:format("truncated host \"~ts\"", [Data]);
 format_error({invalid_port, Data}) ->
   io_lib:format("invalid port \"~ts\"", [Data]);
+format_error({truncated_percent_sequence, Data}) ->
+  io_lib:format("truncated percent-encoding sequence \"~ts\"", [Data]);
+format_error({invalid_hex_digit, Digit}) ->
+  io_lib:format("invalid hex digit '~ts'", [[Digit]]);
 format_error(Term) ->
   io_lib:format("~0tp", [Term]).
