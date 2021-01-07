@@ -15,10 +15,10 @@
 -module(uri).
 
 -export([path/1, query/1, fragment/1,
-         serialize/1, parse/1,
+         serialize/1, parse/1, parse_query/1,
          percent_encode/2, percent_decode/1, percent_decode/2,
          resolve_reference/2,
-         parse_query/1]).
+         format_error/1]).
 
 -export_type([uri/0,
               scheme/0, username/0, password/0, host/0, port_number/0, path/0,
@@ -487,3 +487,15 @@ resolve_reference(_Ref, Base) ->
 remove_uri_dot_segments(URI) ->
   Path = maps:get(path, URI, <<>>),
   uri_paths:remove_dot_segments(Path).
+
+-spec format_error(error_reason()) -> unicode:chardata().
+format_error({invalid_data, Data, State, _}) ->
+  io_lib:format("invalid data \"~ts\" in ~ts", [Data, State]);
+format_error({invalid_host, Data}) ->
+  io_lib:format("invalid host \"~ts\"", [Data]);
+format_error({truncated_host, Data}) ->
+  io_lib:format("truncated host \"~ts\"", [Data]);
+format_error({invalid_port, Data}) ->
+  io_lib:format("invalid port \"~ts\"", [Data]);
+format_error(Term) ->
+  io_lib:format("~0tp", [Term]).

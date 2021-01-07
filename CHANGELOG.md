@@ -5,6 +5,7 @@
 - Add `uri:parse_query/1` since it can also be used to parse
   `www-form-urlencoded` data.
 - Add an `uri:error_reason/0` type.
+- Add `uri:format_error/1` to return human-readable error strings.
 ## Bug fixes
 - `uri:resolve_reference/2` should signal an error instead of throwing one.
 
