@@ -1,6 +1,8 @@
 % erl-uri changelog
 
 # Next Version
+
+# 1.2.1
 ## Features
 - Add `uri:parse_query/1` since it can also be used to parse
   `www-form-urlencoded` data.
