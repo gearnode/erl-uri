@@ -1,6 +1,8 @@
 % erl-uri changelog
 
 # Next Version
+## Features
+- Export `uri:encode_path/1`.
 
 # 1.2.1
 ## Features

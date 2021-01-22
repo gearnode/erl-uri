@@ -17,6 +17,7 @@
 -export([path/1, query/1, fragment/1,
          serialize/1, parse/1, parse_query/1,
          percent_encode/2, percent_decode/1, percent_decode/2,
+         encode_path/1,
          resolve_reference/2,
          format_error/1]).
 
