@@ -173,10 +173,13 @@ encode_query_value(Value) ->
   percent_encode(Value, fun is_valid_query_char/1).
 
 -spec is_valid_query_char(byte()) -> boolean().
-is_valid_query_char(C) when C =:= $/; C =:= $? ->
-  true;
 is_valid_query_char(C) ->
-  is_pchar(C).
+  %% While the grammar in RFC 3986 defines valid query characters as pchars,
+  %% '/' or '?', we actually want to know if the character can be represented
+  %% without being encoded as an hexadecimal sequence. The only characters
+  %% which can be included in a query value without being encoded are
+  %% characters of the unreserved set.
+  is_unreserved_char(C).
 
 -spec encode_fragment(fragment()) -> binary().
 encode_fragment(Fragment) ->

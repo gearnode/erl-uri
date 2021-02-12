@@ -94,7 +94,11 @@ serialize_test_() ->
    ?_assertEqual(<<"http://example.com#/foo%20bar?">>,
                  uri:serialize(#{scheme => <<"http">>,
                                  host => <<"example.com">>,
-                                 fragment => <<"/foo bar?">>}))].
+                                 fragment => <<"/foo bar?">>})),
+   ?_assertEqual(<<"http://example.com?a%3Db=c%3Dd">>,
+                 uri:serialize(#{scheme => <<"http">>,
+                                 host => <<"example.com">>,
+                                 query => [{<<"a=b">>, <<"c=d">>}]}))].
 
 parse_without_authority_test_() ->
   [?_assertEqual({ok, #{scheme => <<"file">>}},
@@ -478,9 +482,9 @@ resolve_reference_test_() ->
    ?_assertEqual(<<"http://a/b/c/y">>,
                  Resolve(<<"g;x=1/../y">>, <<"http://a/b/c/d;p?q">>)),
 
-   ?_assertEqual(<<"http://a/b/c/g?y/./x=">>,
+   ?_assertEqual(<<"http://a/b/c/g?y%2F.%2Fx=">>,
                  Resolve(<<"g?y/./x">>, <<"http://a/b/c/d;p?q">>)),
-   ?_assertEqual(<<"http://a/b/c/g?y/../x=">>,
+   ?_assertEqual(<<"http://a/b/c/g?y%2F..%2Fx=">>,
                  Resolve(<<"g?y/../x">>, <<"http://a/b/c/d;p?q">>)),
    ?_assertEqual(<<"http://a/b/c/g#s/./x">>,
                  Resolve(<<"g#s/./x">>, <<"http://a/b/c/d;p?q">>)),

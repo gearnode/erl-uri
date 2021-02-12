@@ -1,8 +1,12 @@
 % erl-uri changelog
 
 # Next Version
+
+# 1.2.2
 ## Features
 - Export `uri:encode_path/1`.
+## Bug fixes
+- Fix query encoding.
 
 # 1.2.1
 ## Features
