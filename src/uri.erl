@@ -14,7 +14,11 @@
 
 -module(uri).
 
--export([path/1, query/1, fragment/1,
+-export([path/1, query/1,
+         query_parameter/2, find_query_parameter/2, has_query_parameter/2,
+         add_query_parameter/3, add_query_parameters/2,
+         remove_query_parameter/2, remove_query_parameters/2,
+         fragment/1,
          serialize/1, parse/1, parse_query/1,
          percent_encode/2, percent_decode/1, percent_decode/2,
          encode_path/1,
@@ -68,6 +72,46 @@ query(#{query := Query}) ->
   Query;
 query(_) ->
   [].
+
+-spec query_parameter(uri(), binary()) -> binary().
+query_parameter(URI, Name) ->
+  case lists:keyfind(Name, 1, query(URI)) of
+    {_, Value} ->
+      Value;
+    false ->
+      error({unknown_query_parameter, Name, URI})
+  end.
+
+-spec find_query_parameter(uri(), binary()) -> {ok, binary()} | error.
+find_query_parameter(URI, Name) ->
+  case lists:keyfind(Name, 1, query(URI)) of
+    {_, Value} ->
+      {ok, Value};
+    false ->
+      error
+  end.
+
+-spec has_query_parameter(uri(), binary()) -> boolean().
+has_query_parameter(URI, Name) ->
+  lists:keymember(Name, 1, query(URI)).
+
+-spec add_query_parameter(uri(), binary(), binary()) -> uri().
+add_query_parameter(URI, Name, Value) ->
+  URI#{query => [{Name, Value} | query(URI)]}.
+
+-spec add_query_parameters(uri(), [{binary(), binary()}]) -> uri().
+add_query_parameters(URI, Pairs) ->
+  URI#{query => query(URI) ++ Pairs}.
+
+-spec remove_query_parameter(uri(), binary()) -> uri().
+remove_query_parameter(URI, Name) ->
+  URI#{query => [{N, V} || {N, V} <- query(URI), N =/= Name]}.
+
+-spec remove_query_parameters(uri(), [binary()]) -> uri().
+remove_query_parameters(URI, Names) ->
+  URI#{query => lists:filter(fun ({Name, _}) ->
+                                 not lists:member(Name, Names)
+                             end, query(URI))}.
 
 -spec fragment(uri()) -> fragment().
 fragment(#{fragment := Fragment}) ->

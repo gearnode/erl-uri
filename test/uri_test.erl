@@ -493,3 +493,98 @@ resolve_reference_test_() ->
 
    ?_assertEqual(<<"http:g">>,
                  Resolve(<<"http:g">>, <<"http://a/b/c/d;p?q">>))].
+
+query_parameter_test_() ->
+  {ok, URI} = uri:parse(<<"http://example.com?a=1&b=2&c=3&d=4">>),
+  QueryParameter =
+    fun (Name) ->
+        uri:query_parameter(URI, Name)
+    end,
+  [?_assertEqual(<<"1">>, QueryParameter(<<"a">>)),
+   ?_assertEqual(<<"2">>, QueryParameter(<<"b">>)),
+   ?_assertEqual(<<"4">>, QueryParameter(<<"d">>)),
+   ?_assertError({unknown_query_parameter, <<"foo">>, URI},
+                 QueryParameter(<<"foo">>))].
+
+find_query_parameter_test_() ->
+  {ok, URI} = uri:parse(<<"http://example.com?a=1&b=2&c=3&d=4">>),
+  FindQueryParameter =
+    fun (Name) ->
+        uri:find_query_parameter(URI, Name)
+    end,
+  [?_assertEqual({ok, <<"1">>}, FindQueryParameter(<<"a">>)),
+   ?_assertEqual({ok, <<"2">>}, FindQueryParameter(<<"b">>)),
+   ?_assertEqual({ok, <<"4">>}, FindQueryParameter(<<"d">>)),
+   ?_assertEqual(error, FindQueryParameter(<<"foo">>))].
+
+has_query_parameter_test_() ->
+  {ok, URI} = uri:parse(<<"http://example.com?a=1&b=2&c=3&d=4">>),
+  HasQueryParameter =
+    fun (Name) ->
+        uri:has_query_parameter(URI, Name)
+    end,
+  [?_assertEqual(true, HasQueryParameter(<<"a">>)),
+   ?_assertEqual(true, HasQueryParameter(<<"b">>)),
+   ?_assertEqual(true, HasQueryParameter(<<"d">>)),
+   ?_assertEqual(false, HasQueryParameter(<<"foo">>))].
+
+add_query_parameter_test_() ->
+  {ok, URI1} = uri:parse(<<"http://example.com">>),
+  {ok, URI2} = uri:parse(<<"http://example.com?a=1">>),
+  AddQueryParameter =
+    fun (URI, Name, Value) ->
+        uri:serialize(uri:add_query_parameter(URI, Name, Value))
+    end,
+  [?_assertEqual(<<"http://example.com?b=2">>,
+                 AddQueryParameter(URI1, <<"b">>, <<"2">>)),
+   ?_assertEqual(<<"http://example.com?b=2&a=1">>,
+                 AddQueryParameter(URI2, <<"b">>, <<"2">>))].
+
+add_query_parameters_test_() ->
+  {ok, URI1} = uri:parse(<<"http://example.com">>),
+  {ok, URI2} = uri:parse(<<"http://example.com?a=1">>),
+  AddQueryParameters =
+    fun (URI, Pairs) ->
+        uri:serialize(uri:add_query_parameters(URI, Pairs))
+    end,
+  [?_assertEqual(<<"http://example.com">>,
+                 AddQueryParameters(URI1, [])),
+   ?_assertEqual(<<"http://example.com?a=1">>,
+                 AddQueryParameters(URI2, [])),
+   ?_assertEqual(<<"http://example.com?b=2&c=3">>,
+                 AddQueryParameters(URI1, [{<<"b">>, <<"2">>},
+                                           {<<"c">>, <<"3">>}])),
+   ?_assertEqual(<<"http://example.com?a=1&b=2&c=3">>,
+                 AddQueryParameters(URI2, [{<<"b">>, <<"2">>},
+                                           {<<"c">>, <<"3">>}]))].
+
+remove_query_parameter_test_() ->
+  {ok, URI1} = uri:parse(<<"http://example.com">>),
+  {ok, URI2} = uri:parse(<<"http://example.com?a=1">>),
+  RemoveQueryParameter =
+    fun (URI, Name) ->
+        uri:serialize(uri:remove_query_parameter(URI, Name))
+    end,
+  [?_assertEqual(<<"http://example.com">>,
+                 RemoveQueryParameter(URI1, <<"a">>)),
+   ?_assertEqual(<<"http://example.com">>,
+                 RemoveQueryParameter(URI2, <<"a">>)),
+   ?_assertEqual(<<"http://example.com?a=1">>,
+                 RemoveQueryParameter(URI2, <<"b">>))].
+
+remove_query_parameters_test_() ->
+  {ok, URI} = uri:parse(<<"http://example.com?a=1&b=2&a=3">>),
+  RemoveQueryParameters =
+    fun (Names) ->
+        uri:serialize(uri:remove_query_parameters(URI, Names))
+    end,
+  [?_assertEqual(<<"http://example.com?a=1&b=2&a=3">>,
+                 RemoveQueryParameters([])),
+   ?_assertEqual(<<"http://example.com?b=2">>,
+                 RemoveQueryParameters([<<"a">>])),
+   ?_assertEqual(<<"http://example.com?a=1&a=3">>,
+                 RemoveQueryParameters([<<"b">>])),
+   ?_assertEqual(<<"http://example.com">>,
+                 RemoveQueryParameters([<<"a">>, <<"b">>])),
+   ?_assertEqual(<<"http://example.com?b=2">>,
+                 RemoveQueryParameters([<<"a">>, <<"c">>]))].

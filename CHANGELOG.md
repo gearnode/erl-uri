@@ -1,6 +1,15 @@
 % erl-uri changelog
 
 # Next Version
+## Features
+- Add new functions to access and modify uri query parameters:
+  - `uri:query_parameter/2`;
+  - `uri:find_query_parameter/2`;
+  - `uri:has_query_parameter/2`;
+  - `uri:add_query_parameter/3`;
+  - `uri:add_query_parameters/2`;
+  - `uri:remove_query_parameter/2`;
+  - `uri:remove_query_parameters/2`.
 
 # 1.2.2
 ## Features
