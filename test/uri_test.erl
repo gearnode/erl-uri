@@ -506,6 +506,17 @@ query_parameter_test_() ->
    ?_assertError({unknown_query_parameter, <<"foo">>, URI},
                  QueryParameter(<<"foo">>))].
 
+query_parameter_default_test_() ->
+  {ok, URI} = uri:parse(<<"http://example.com?a=1&b=2&c=3&d=4">>),
+  QueryParameter =
+    fun (Name, DefaultValue) ->
+        uri:query_parameter(URI, Name, DefaultValue)
+    end,
+  [?_assertEqual(<<"1">>, QueryParameter(<<"a">>, <<"x">>)),
+   ?_assertEqual(<<"2">>, QueryParameter(<<"b">>, <<"x">>)),
+   ?_assertEqual(<<"4">>, QueryParameter(<<"d">>, <<"x">>)),
+   ?_assertEqual(<<"x">>, QueryParameter(<<"foo">>, <<"x">>))].
+
 find_query_parameter_test_() ->
   {ok, URI} = uri:parse(<<"http://example.com?a=1&b=2&c=3&d=4">>),
   FindQueryParameter =

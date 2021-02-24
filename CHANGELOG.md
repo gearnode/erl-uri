@@ -4,6 +4,7 @@
 ## Features
 - Add new functions to access and modify uri query parameters:
   - `uri:query_parameter/2`;
+  - `uri:query_parameter/3`;
   - `uri:find_query_parameter/2`;
   - `uri:has_query_parameter/2`;
   - `uri:add_query_parameter/3`;

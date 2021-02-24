@@ -15,7 +15,8 @@
 -module(uri).
 
 -export([path/1, query/1,
-         query_parameter/2, find_query_parameter/2, has_query_parameter/2,
+         query_parameter/2, query_parameter/3,
+         find_query_parameter/2, has_query_parameter/2,
          add_query_parameter/3, add_query_parameters/2,
          remove_query_parameter/2, remove_query_parameters/2,
          fragment/1,
@@ -80,6 +81,15 @@ query_parameter(URI, Name) ->
       Value;
     false ->
       error({unknown_query_parameter, Name, URI})
+  end.
+
+-spec query_parameter(uri(), binary(), binary()) -> binary().
+query_parameter(URI, Name, DefaultValue) ->
+  case lists:keyfind(Name, 1, query(URI)) of
+    {_, Value} ->
+      Value;
+    false ->
+      DefaultValue
   end.
 
 -spec find_query_parameter(uri(), binary()) -> {ok, binary()} | error.
