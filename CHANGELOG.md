@@ -11,6 +11,7 @@
   - `uri:add_query_parameters/2`;
   - `uri:remove_query_parameter/2`;
   - `uri:remove_query_parameters/2`.
+  - `uri:encode_query/1`.
 
 # 1.2.2
 ## Features

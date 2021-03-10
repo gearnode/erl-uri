@@ -23,6 +23,7 @@
          serialize/1, parse/1, parse_query/1,
          percent_encode/2, percent_decode/1, percent_decode/2,
          encode_path/1,
+         encode_query/1,
          resolve_reference/2,
          format_error/1]).
 
@@ -193,6 +194,12 @@ serialize_query(Query) ->
                         [encode_query_value(K), $=, encode_query_value(V)]
                     end, Query),
   lists:join($&, Parts).
+
+-spec encode_query(query()) -> binary().
+encode_query(Query) when length(Query) > 0 ->
+  iolist_to_binary(serialize_query(Query));
+encode_query(_) ->
+  <<>>.
 
 -spec encode_path(path()) -> binary().
 encode_path(Path) ->
