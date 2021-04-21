@@ -20,7 +20,7 @@
          remove_last_segment/1,
          remove_last_segment_and_slash/1]).
 
--spec join([iodata()]) -> binary().
+-spec join([binary()]) -> binary().
 join([]) ->
   <<"/">>;
 join(Parts) ->
