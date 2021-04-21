@@ -11,7 +11,9 @@
   - `uri:add_query_parameters/2`;
   - `uri:remove_query_parameter/2`;
   - `uri:remove_query_parameters/2`.
-  - `uri:encode_query/1`.
+- Add `uri:encode_query/1` which can be useful out of uris, e.g. for HTML form
+  data.
+- Add `uri_paths:join/1` to facilitate path construction.
 
 # 1.2.2
 ## Features

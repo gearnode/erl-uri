@@ -16,6 +16,17 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
+join_test_() ->
+  Join = fun uri_paths:join/1,
+  [?_assertEqual(<<"/">>,
+                 Join([])),
+   ?_assertEqual(<<"/foo">>,
+                 Join([<<"foo">>])),
+   ?_assertEqual(<<"/foo/bar">>,
+                 Join([<<"foo">>, <<"bar">>])),
+   ?_assertEqual(<<"/%C3%A9t%C3%A9/%E2%9C%93/a%20b%20c">>,
+                 Join([<<"été"/utf8>>, <<"✓"/utf8>>, <<"a b c">>]))].
+
 remove_first_segment_test_() ->
   [?_assertEqual({<<"">>, <<"">>},
                  uri_paths:remove_first_segment(<<"">>)),

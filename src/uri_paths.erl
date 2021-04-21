@@ -14,11 +14,17 @@
 
 -module(uri_paths).
 
--export([merge/3,
+-export([join/1, merge/3,
          remove_dot_segments/1,
          remove_first_segment/1,
          remove_last_segment/1,
          remove_last_segment_and_slash/1]).
+
+-spec join([iodata()]) -> binary().
+join([]) ->
+  <<"/">>;
+join(Parts) ->
+  iolist_to_binary([[$/, uri:encode_path(Part)] || Part <- Parts]).
 
 -spec merge(BasePath :: uri:path(), BaseHasAuthority :: boolean(),
             RefPath :: uri:path()) -> uri:path().
