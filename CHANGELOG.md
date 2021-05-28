@@ -1,6 +1,8 @@
 % erl-uri changelog
 
 # Next Version
+
+# 1.3.0
 ## Features
 - Add new functions to access and modify uri query parameters:
   - `uri:query_parameter/2`;
