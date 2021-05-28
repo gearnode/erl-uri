@@ -149,8 +149,12 @@ serialize_scheme_part(_) ->
 -spec serialize_authority(uri()) -> iodata().
 serialize_authority(URI = #{host := Host}) ->
   UserInfo = serialize_userinfo_part(URI),
+  HostPart = case binary:match(Host, <<":">>) of
+               nomatch -> Host;
+               _ -> [$[, Host, $]]
+             end,
   PortPart = serialize_port_part(URI),
-  [<<"//">>, UserInfo, Host, PortPart];
+  [<<"//">>, UserInfo, HostPart, PortPart];
 serialize_authority(_) ->
   [].
 
@@ -370,14 +374,14 @@ parse_uri_authority(URI, Data) ->
   end.
 
 -spec parse_uri_host_and_port(uri(), binary()) -> uri().
-parse_uri_host_and_port(URI, Data = <<$[, _/binary>>) ->
+parse_uri_host_and_port(URI, <<$[, Data/binary>>) ->
   %% ":" can appear in the host part when it is an IPv6 address. When this is
   %% the case, the address is delimited by brackets.
   case binary:split(Data, <<"]">>) of
     [Host, <<>>] ->
-      URI#{host => <<Host/binary, $]>>};
+      URI#{host => Host};
     [Host, <<$:, PortData/binary>>] ->
-      URI#{host => <<Host/binary, $]>>, port => decode_port(PortData)};
+      URI#{host => Host, port => decode_port(PortData)};
     [_Host, _Rest] ->
       throw({error, {invalid_host, Data}});
     _ ->

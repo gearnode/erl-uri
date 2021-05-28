@@ -14,6 +14,9 @@
 - Add `uri:encode_query/1` which can be useful out of uris, e.g. for HTML form
   data.
 - Add `uri_paths:join/1` to facilitate path construction.
+## Changes
+- The square brackets used to delimit IPv6 addresses in host parts are now
+  removed during parsing, and added during serialization.
 
 # 1.2.2
 ## Features
