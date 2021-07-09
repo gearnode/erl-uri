@@ -24,7 +24,13 @@
 join([]) ->
   <<"/">>;
 join(Parts) ->
-  iolist_to_binary([[$/, uri:encode_path(Part)] || Part <- Parts]).
+  F = fun
+        (Part = <<$/, _/binary>>) ->
+          uri:encode_path(Part);
+        (Part) ->
+          [$/, uri:encode_path(Part)]
+      end,
+iolist_to_binary([F(Part) || Part <- Parts]).
 
 -spec merge(BasePath :: uri:path(), BaseHasAuthority :: boolean(),
             RefPath :: uri:path()) -> uri:path().

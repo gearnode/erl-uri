@@ -1,6 +1,10 @@
 % erl-uri changelog
 
 # Next Version
+## Changes
+- `uri_paths:join/1` now accept absolute path segments. Absolute paths in the
+  segment list are technically incorrect, but the convenience of being able to
+  join recursively is worth it.
 
 # 1.3.0
 ## Features

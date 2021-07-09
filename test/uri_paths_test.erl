@@ -25,7 +25,13 @@ join_test_() ->
    ?_assertEqual(<<"/foo/bar">>,
                  Join([<<"foo">>, <<"bar">>])),
    ?_assertEqual(<<"/%C3%A9t%C3%A9/%E2%9C%93/a%20b%20c">>,
-                 Join([<<"été"/utf8>>, <<"✓"/utf8>>, <<"a b c">>]))].
+                 Join([<<"été"/utf8>>, <<"✓"/utf8>>, <<"a b c">>])),
+   ?_assertEqual(<<"/foo/bar">>,
+                 Join([<<"/foo">>, <<"bar">>])),
+   ?_assertEqual(<<"/foo/bar">>,
+                 Join([<<"foo">>, <<"/bar">>])),
+   ?_assertEqual(<<"/foo/bar">>,
+                 Join([<<"/foo">>, <<"/bar">>]))].
 
 remove_first_segment_test_() ->
   [?_assertEqual({<<"">>, <<"">>},
