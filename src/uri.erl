@@ -33,14 +33,15 @@
               error_reason/0,
               percent_decoding_options/0, percent_decoding_error_reason/0]).
 
--type uri() :: #{scheme => scheme(),
-                 username => username(),
-                 password => password(),
-                 host => host(),
-                 port => port_number(),
-                 path => path(),
-                 query => query(),
-                 fragment => fragment()}.
+-type uri() ::
+        #{scheme => scheme(),
+          username => username(),
+          password => password(),
+          host => host(),
+          port => port_number(),
+          path => path(),
+          query => query(),
+          fragment => fragment()}.
 
 -type scheme() :: binary().
 -type username() :: binary().
@@ -51,17 +52,22 @@
 -type query() :: [{binary(), binary()}].
 -type fragment() :: binary().
 
--type parsing_state() :: scheme | authority | path | query | fragment.
+-type parsing_state() ::
+        scheme | authority | path | query | fragment.
 
--type error_reason() :: {invalid_data, binary(), parsing_state(), uri()}
-                      | {invalid_host, binary()}
-                      | {truncated_host, binary()}
-                      | {invalid_port, binary()}
-                      | percent_decoding_error_reason().
+-type error_reason() ::
+        {invalid_data, binary(), parsing_state(), uri()}
+      | {invalid_host, binary()}
+      | {truncated_host, binary()}
+      | {invalid_port, binary()}
+      | percent_decoding_error_reason().
 
--type percent_decoding_options() :: #{decode_plus => boolean()}.
--type percent_decoding_error_reason() :: {truncated_percent_sequence, binary()}
-                                       | {invalid_hex_digit, integer()}.
+-type percent_decoding_options() ::
+        #{decode_plus => boolean()}.
+
+-type percent_decoding_error_reason() ::
+        {truncated_percent_sequence, binary()}
+      | {invalid_hex_digit, integer()}.
 
 -spec path(uri()) -> path().
 path(#{path := Path}) ->
