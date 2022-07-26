@@ -8,6 +8,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## 1.4.0
+
 ### Changed
 
 - `uri_paths:join/1` now accept absolute path segments. Absolute paths in the
